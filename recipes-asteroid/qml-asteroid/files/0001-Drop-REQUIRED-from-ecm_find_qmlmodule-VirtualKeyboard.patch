@@ -1,0 +1,31 @@
+From: AsteroidOS Build System <build@asteroidos.org>
+Date: Mon, 1 Jan 2024 00:00:00 +0000
+Subject: [PATCH] Drop REQUIRED from ecm_find_qmlmodule(QtQuick.VirtualKeyboard)
+
+Upstream-Status: Inappropriate [OE-specific]
+
+In cross-compilation the native qmlplugindump cannot dlopen the
+ARM VirtualKeyboard plugin (wrong ELF arch) and always exits 3.
+This makes ecm_find_qmlmodule report the module as missing and abort
+the configure step with REQUIRED set.
+
+Remove REQUIRED so the configure step can proceed.  Runtime
+availability of qtvirtualkeyboard is enforced by RDEPENDS in the
+Yocto recipe.
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1234567..abcdefg 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -42,7 +42,7 @@ else()
+     endif()
+ endif()
+ 
+-ecm_find_qmlmodule(QtQuick.VirtualKeyboard 2.1 REQUIRED)
++ecm_find_qmlmodule(QtQuick.VirtualKeyboard 2.1)
+ 
+ if (WITH_CMAKE_MODULES)
+ # Install CMake modules
