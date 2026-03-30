@@ -1,0 +1,63 @@
+From: AsteroidOS Build System <build@asteroidos.org>
+Date: Mon, 1 Jan 2024 00:00:00 +0000
+Subject: [PATCH] Add FindMlite5 cmake module
+
+Upstream-Status: Inappropriate [OE-specific]
+
+asteroid-launcher calls find_package(Mlite5 REQUIRED) but mlite uses
+a qmake5 build system and only installs a mlite5.pc pkgconfig file --
+no CMake config or find-module is provided upstream.
+
+Add FindMlite5.cmake to the qml-asteroid cmake modules directory
+(ASTEROID_MODULE_PATH) following the same pkgconfig-backed pattern
+used by FindLipstick.cmake, FindTimed.cmake and FindSystemSettings.cmake.
+---
+ cmake/FindMlite5.cmake | 39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
+ create mode 100644 cmake/FindMlite5.cmake
+
+diff --git a/cmake/FindMlite5.cmake b/cmake/FindMlite5.cmake
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/cmake/FindMlite5.cmake
+@@ -0,0 +1,39 @@
++# Try to find mlite5
++# Once done this will define
++# Mlite5_FOUND - System has mlite5
++# Mlite5_INCLUDE_DIRS - The mlite5 include directories
++# Mlite5_LIBRARIES - The libraries needed to use mlite5
++
++find_package(PkgConfig REQUIRED)
++pkg_check_modules(PC_Mlite5 QUIET mlite5)
++set(Mlite5_DEFINITIONS ${PC_Mlite5_CFLAGS_OTHER})
++
++find_path(Mlite5_INCLUDE_DIRS
++	NAMES mlite-global.h
++	PATH_SUFFIXES mlite5
++	PATHS ${PC_Mlite5_INCLUDEDIR} ${PC_Mlite5_INCLUDE_DIRS})
++
++find_library(Mlite5_LIBRARIES
++	NAMES mlite5
++	PATHS ${PC_Mlite5_LIBDIR} ${PC_Mlite5_LIBRARY_DIRS})
++
++set(Mlite5_VERSION ${PC_Mlite5_VERSION})
++
++include(FindPackageHandleStandardArgs)
++find_package_handle_standard_args(Mlite5
++	FOUND_VAR
++		Mlite5_FOUND
++	REQUIRED_VARS
++		Mlite5_LIBRARIES
++		Mlite5_INCLUDE_DIRS
++	VERSION_VAR
++		Mlite5_VERSION)
++
++mark_as_advanced(Mlite5_INCLUDE_DIRS Mlite5_LIBRARIES Mlite5_VERSION)
++
++if(Mlite5_FOUND AND NOT TARGET Mlite5::Mlite5)
++	add_library(Mlite5::Mlite5 UNKNOWN IMPORTED)
++	set_target_properties(Mlite5::Mlite5 PROPERTIES
++		IMPORTED_LOCATION "${Mlite5_LIBRARIES}"
++		INTERFACE_INCLUDE_DIRECTORIES "${Mlite5_INCLUDE_DIRS}")
++endif()
